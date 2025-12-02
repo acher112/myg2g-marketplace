@@ -44,22 +44,30 @@ export default function Home() {
 
         {/* Categories Grid */}
         <section className="container mx-auto px-4 py-16">
-          <h2 className="text-4xl font-bold text-white text-center mb-12">Choose Your Platform</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {CATEGORIES.map(category => (
-              <Link
-                key={category.id}
-                href={`/category/${category.id}`}
-                className="group cursor-pointer bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 hover:scale-105 transition-all duration-300 border border-purple-500/20 hover:border-purple-500/50 shadow-xl hover:shadow-purple-500/20"
-              >
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">
-                  {category.icon}
-                </div>
-                <h3 className="text-white font-semibold text-lg mb-2">{category.name}</h3>
-                <p className="text-gray-400 text-sm">View accounts</p>
-              </Link>
-            ))}
-          </div>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+  {CATEGORIES.map(category => (
+    <Link
+      key={category.id}
+      href={`/category/${category.id}`}
+      className="group cursor-pointer bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl overflow-hidden hover:scale-105 transition-all duration-300 border border-purple-500/20 hover:border-purple-500/50 shadow-xl hover:shadow-purple-500/20"
+    >
+      {/* Fixed size image container */}
+      <div className="relative w-full h-40 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center p-4">
+        <img 
+          src={category.image} 
+          alt={category.name}
+          className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform"
+        />
+      </div>
+      
+      {/* Category info */}
+      <div className="p-4">
+        <h3 className="text-white font-semibold text-base mb-1">{category.name}</h3>
+        <p className="text-gray-400 text-xs">View Accounts →</p>
+      </div>
+    </Link>
+  ))}
+</div>
         </section>
 
         {/* Trust Section */}

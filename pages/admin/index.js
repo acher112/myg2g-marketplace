@@ -111,7 +111,7 @@ export default function AdminDashboard() {
         }
       });
 
-      alert('Listing added successfully!');
+      alert('✅ Listing added successfully!\n\nYou can see it in the listings below and on your website.');
       setNewListing({
         title: '',
         description: '',
@@ -133,8 +133,8 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteListing = async (id) => {
-    if (!confirm('Delete this listing?')) return;
+const handleDeleteListing = async (id) => {
+  if (!confirm('⚠️ Are you sure you want to delete this listing?\n\nThis action cannot be undone.')) return;
 
     try {
       const adminPass = localStorage.getItem('adminPassword');
@@ -201,7 +201,9 @@ export default function AdminDashboard() {
                 Login
               </button>
             </form>
-            <p className="text-gray-400 text-sm mt-4 text-center">Demo password: admin123</p>
+           <p className="text-gray-400 text-sm mt-4 text-center">
+  🔒 Secure admin access only
+</p>
             <button
               onClick={() => router.push('/')}
               className="w-full text-gray-400 hover:text-white mt-4 transition"
@@ -217,7 +219,7 @@ export default function AdminDashboard() {
   return (
     <>
       <Head>
-        <title>Admin Dashboard - AccVault</title>
+        <title>Admin Dashboard </title>
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12">

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Shield } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -8,9 +8,15 @@ export default function Footer() {
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Shield className="text-purple-400" />
+              <Image
+                src="/logo.png"        // put logo.png in /public
+                alt="MyG2G logo"
+                width={28}
+                height={28}
+                className="rounded-md"
+              />
               <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-               MyG2G
+                MyG2G
               </span>
             </div>
             <p className="text-gray-400 text-sm">
@@ -22,6 +28,8 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
               <li><Link href="/" className="hover:text-purple-400 transition">Home</Link></li>
+              <li><Link href="/terms" className="hover:text-purple-400 transition">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="hover:text-purple-400 transition">Privacy Policy</Link></li>
               <li><Link href="/admin" className="hover:text-purple-400 transition">Admin Login</Link></li>
             </ul>
           </div>
@@ -39,8 +47,8 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-slate-700 pt-8 text-center text-gray-400 text-sm">
-          <p>&copy; {new Date().getFullYear()} AccVault. All rights reserved.</p>
-          <p className="mt-2">Built with Next.js & NOWPayments</p>
+          <p>&copy; {new Date().getFullYear()} MyG2G. All rights reserved.</p>
+          <p className="mt-2">Built with Next.js & Crypto Payments</p>
         </div>
       </div>
     </footer>

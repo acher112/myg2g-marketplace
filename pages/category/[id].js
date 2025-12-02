@@ -32,14 +32,27 @@ export default function CategoryPage() {
     }
   };
 
+  const handleBuyNow = (listing) => {
+    router.push(`/checkout/${listing._id}`);
+  };
+
   if (!category) {
-    return <div className="min-h-screen flex items-center justify-center text-white">Category not found</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-4">Category not found</h1>
+          <Link href="/" className="text-purple-400 hover:text-purple-300">
+            ← Back to Home
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
     <>
       <Head>
-        <title>{category.name} - AccVault</title>
+        <title>{category.name} - MyG2G</title>
         <meta name="description" content={category.description} />
       </Head>
 
@@ -48,7 +61,7 @@ export default function CategoryPage() {
 
         <div className="container mx-auto px-4 py-12">
           <Link href="/" className="text-white mb-6 hover:text-purple-400 transition flex items-center gap-2 inline-flex">
-            ← Back to Home
+            ← Back to Categories
           </Link>
 
           <div className="text-white mb-8">
@@ -72,8 +85,13 @@ export default function CategoryPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {listings.map(listing => (
-                <div key={listing._id} className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-all shadow-xl">
-                  <h3 className="text-2xl font-bold text-white mb-3">{listing.title}</h3>
+                <div key={listing._id} className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-all shadow-xl relative overflow-hidden">
+                  {/* Price Badge */}
+                  <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg">
+                    ${listing.price}
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-white mb-3 pr-24">{listing.title}</h3>
                   <p className="text-gray-400 mb-4 text-sm">{listing.description}</p>
                   
                   {listing.features && listing.features.length > 0 && (
@@ -87,15 +105,12 @@ export default function CategoryPage() {
                     </ul>
                   )}
 
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-700">
-                    <div className="text-3xl font-bold text-purple-400">${listing.price}</div>
-                    <Link
-                      href={`/checkout/${listing._id}`}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-purple-500/50"
-                    >
-                      Buy Now
-                    </Link>
-                  </div>
+                  <button
+                    onClick={() => handleBuyNow(listing)}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-4 rounded-lg font-semibold transition-all shadow-lg hover:shadow-purple-500/50 text-lg"
+                  >
+                    Buy Now →
+                  </button>
                 </div>
               ))}
             </div>
