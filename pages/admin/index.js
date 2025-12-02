@@ -32,16 +32,19 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || password === 'admin123') {
-      localStorage.setItem('adminPassword', password);
-      setIsAuthenticated(true);
-      fetchData();
-    } else {
-      alert('Wrong password!');
-    }
-  };
+const handleLogin = (e) => {
+  e.preventDefault();
+  const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+
+  if (password === correctPassword) {
+    localStorage.setItem('adminPassword', password);
+    setIsAuthenticated(true);
+    fetchData();
+  } else {
+    alert('Wrong password!');
+  }
+};
+
 
   const handleLogout = () => {
     localStorage.removeItem('adminPassword');
