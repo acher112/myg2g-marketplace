@@ -32,19 +32,18 @@ export default function AdminDashboard() {
     }
   }, []);
 
-const handleLogin = (e) => {
-  e.preventDefault();
-  const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
-  if (password === correctPassword) {
-    localStorage.setItem('adminPassword', password);
-    setIsAuthenticated(true);
-    fetchData();
-  } else {
-    alert('Wrong password!');
-  }
-};
-
+    if (password === correctPassword) {
+      localStorage.setItem('adminPassword', password);
+      setIsAuthenticated(true);
+      fetchData();
+    } else {
+      alert('Wrong password!');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('adminPassword');
@@ -136,8 +135,8 @@ const handleLogin = (e) => {
     }
   };
 
-const handleDeleteListing = async (id) => {
-  if (!confirm('⚠️ Are you sure you want to delete this listing?\n\nThis action cannot be undone.')) return;
+  const handleDeleteListing = async (id) => {
+    if (!confirm('⚠️ Are you sure you want to delete this listing?\n\nThis action cannot be undone.')) return;
 
     try {
       const adminPass = localStorage.getItem('adminPassword');
@@ -179,6 +178,28 @@ const handleDeleteListing = async (id) => {
     }
   };
 
+  // NEW FUNCTION - Mark as Paid
+  const handleMarkAsPaid = async (orderId) => {
+    if (!confirm('✅ Confirm that you received the crypto payment in your Binance wallet?\n\nThis will mark the order as PAID and you should deliver the account to the customer immediately.')) {
+      return;
+    }
+
+    try {
+      const adminPass = localStorage.getItem('adminPassword');
+      await axios.put(`/api/orders/${orderId}/status`, {
+        status: 'paid'
+      }, {
+        headers: { 'admin-password': adminPass }
+      });
+      
+      alert('✅ Order marked as PAID!\n\n📧 Now deliver the account details to the customer via:\n• Email (check order details)\n• WhatsApp (check order details)\n\nAfter delivery, mark order as "Delivered".');
+      fetchData(); // Refresh orders
+    } catch (error) {
+      console.error('Error updating order:', error);
+      alert('Error updating order status');
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <>
@@ -204,9 +225,9 @@ const handleDeleteListing = async (id) => {
                 Login
               </button>
             </form>
-           <p className="text-gray-400 text-sm mt-4 text-center">
-  🔒 Secure admin access only
-</p>
+            <p className="text-gray-400 text-sm mt-4 text-center">
+              🔒 Secure admin access only
+            </p>
             <button
               onClick={() => router.push('/')}
               className="w-full text-gray-400 hover:text-white mt-4 transition"
@@ -222,7 +243,7 @@ const handleDeleteListing = async (id) => {
   return (
     <>
       <Head>
-        <title>Admin Dashboard </title>
+        <title>Admin Dashboard</title>
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12">
@@ -398,14 +419,16 @@ const handleDeleteListing = async (id) => {
                           value={order.status}
                           onChange={(e) => handleUpdateOrderStatus(order.orderId, e.target.value)}
                           className={`px-3 py-1 rounded-lg font-semibold text-sm ${
-                            order.status === 'pending' ? 'bg-yellow-600' :
+                            order.status === 'pending' || order.status === 'pending_payment' ? 'bg-yellow-600' :
+                            order.status === 'awaiting_verification' ? 'bg-orange-600' :
                             order.status === 'paid' ? 'bg-blue-600' :
                             order.status === 'delivered' ? 'bg-green-600' :
                             order.status === 'completed' ? 'bg-purple-600' :
                             'bg-red-600'
                           } text-white`}
                         >
-                          <option value="pending">Pending</option>
+                          <option value="pending_payment">Pending Payment</option>
+                          <option value="awaiting_verification">Awaiting Verification</option>
                           <option value="paid">Paid</option>
                           <option value="delivered">Delivered</option>
                           <option value="completed">Completed</option>
@@ -427,12 +450,40 @@ const handleDeleteListing = async (id) => {
                         </div>
                       </div>
 
-                      {order.paymentDetails?.invoiceId && (
+                      {/* Payment Details */}
+                      {order.paymentDetails && (
                         <div className="mt-4 p-3 bg-slate-800 rounded-lg text-xs text-gray-400">
-                          <p><strong>Payment ID:</strong> {order.paymentDetails.invoiceId}</p>
-                          {order.paymentDetails.paymentCurrency && (
-                            <p><strong>Paid with:</strong> {order.paymentDetails.paymentCurrency}</p>
+                          {order.paymentDetails.method && (
+                            <p><strong>Payment Method:</strong> {order.paymentDetails.method}</p>
                           )}
+                          {order.paymentDetails.transactionId && (
+                            <p><strong>Transaction ID:</strong> {order.paymentDetails.transactionId}</p>
+                          )}
+                          {order.paymentDetails.submittedAt && (
+                            <p><strong>Submitted:</strong> {new Date(order.paymentDetails.submittedAt).toLocaleString()}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Mark as Paid Button - Shows only for awaiting_verification */}
+                      {order.status === 'awaiting_verification' && (
+                        <div className="mt-4 p-4 bg-orange-900/30 border border-orange-500/30 rounded-lg">
+                          <p className="text-orange-300 text-sm mb-3">
+                            ⚠️ Customer claims payment sent. Check your Binance wallet for incoming {order.paymentDetails?.method} payment of ${order.amount}.
+                          </p>
+                          <button
+                            onClick={() => handleMarkAsPaid(order.orderId)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition font-semibold w-full"
+                          >
+                            ✓ Verified Payment - Mark as Paid & Deliver
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Paid status info */}
+                      {order.status === 'paid' && (
+                        <div className="mt-4 p-3 bg-green-900/30 border border-green-500/30 rounded-lg text-green-300 text-sm">
+                          ✓ Payment verified. Deliver account details to customer via email/WhatsApp, then mark as "Delivered".
                         </div>
                       )}
                     </div>

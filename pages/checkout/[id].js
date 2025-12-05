@@ -11,6 +11,7 @@ export default function CheckoutPage() {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('');
   const [buyerInfo, setBuyerInfo] = useState({
     name: '',
     email: '',
@@ -44,25 +45,29 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!paymentMethod) {
+      alert('Please select a payment method (USDT or Litecoin)');
+      return;
+    }
+
     setProcessing(true);
 
     try {
       const response = await axios.post('/api/payment/create-invoice', {
         listingId: listing._id,
         buyer: buyerInfo,
-        payCurrency: 'usdttrc20' // Default to USDT TRC20
+        paymentMethod
       });
 
-      if (response.data.demo) {
-        alert('Demo Mode: NOWPayments not configured.\n\nOrder created: ' + response.data.orderId);
-        router.push('/');
-      } else if (response.data.paymentUrl) {
-        // Redirect to NOWPayments checkout
-        window.location.href = response.data.paymentUrl;
+      if (response.data.success) {
+        // Redirect to payment instructions page
+        router.push(
+          `/payment/${response.data.orderId}?method=${paymentMethod}&amount=${listing.price}`
+        );
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Error creating payment. Please try again.');
+      alert('Error creating order. Please try again.');
     } finally {
       setProcessing(false);
     }
@@ -113,7 +118,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Contact Form */}
-            <form onSubmit={handleCheckout} className="space-y-4 mb-8">
+            <form onSubmit={handleCheckout} className="space-y-6 mb-8">
               <h3 className="text-xl font-semibold text-white mb-4">Your Contact Details</h3>
               
               <input
@@ -143,14 +148,61 @@ export default function CheckoutPage() {
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
               />
 
+              {/* Payment Method Selection */}
+              <div>
+                <label className="block text-white font-semibold mb-3 text-lg">
+                  Select Payment Method *
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('USDT')}
+                    className={`p-6 rounded-xl border-2 transition-all ${
+                      paymentMethod === 'USDT'
+                        ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/30'
+                        : 'border-slate-700 bg-slate-900 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">💵</div>
+                      <div className="font-bold text-white text-lg">USDT</div>
+                      <div className="text-xs text-gray-400 mt-1">TRC20 (Tron)</div>
+                      <div className="text-xs text-green-400 mt-2">⚡ 2-3 min</div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('LTC')}
+                    className={`p-6 rounded-xl border-2 transition-all ${
+                      paymentMethod === 'LTC'
+                        ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/30'
+                        : 'border-slate-700 bg-slate-900 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">🪙</div>
+                      <div className="font-bold text-white text-lg">Litecoin</div>
+                      <div className="text-xs text-gray-400 mt-1">LTC Network</div>
+                      <div className="text-xs text-green-400 mt-2">⚡ 2-5 min</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
               <div className="bg-blue-900/30 border border-blue-500/30 rounded-xl p-4 text-blue-200 text-sm">
                 <p className="font-semibold mb-2">📧 Delivery Method:</p>
-                <p>Account credentials will be sent to your email or WhatsApp within 2 hours after payment confirmation.</p>
+                <p>Account credentials will be sent to your email and WhatsApp within 5-10 minutes after payment verification.</p>
               </div>
 
               <div className="bg-purple-900/30 border border-purple-500/30 rounded-xl p-4 text-purple-200 text-sm">
-                <p className="font-semibold mb-2">💰 Payment Methods:</p>
-                <p>We accept Bitcoin (BTC), USDT (TRC20/ERC20), Ethereum (ETH), and 100+ cryptocurrencies.</p>
+                <p className="font-semibold mb-2">💰 How it Works:</p>
+                <ul className="space-y-1 ml-4 list-disc">
+                  <li>Select your preferred crypto (USDT or Litecoin)</li>
+                  <li>You'll get our wallet address and QR code</li>
+                  <li>Send payment from Binance, Trust Wallet, or any crypto wallet</li>
+                  <li>We verify and deliver your account instantly!</li>
+                </ul>
               </div>
 
               <button
@@ -158,7 +210,7 @@ export default function CheckoutPage() {
                 disabled={processing}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {processing ? 'Processing...' : 'Proceed to Crypto Payment'}
+                {processing ? 'Processing...' : '→ Continue to Payment Details'}
               </button>
             </form>
           </div>

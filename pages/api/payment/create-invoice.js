@@ -1,4 +1,3 @@
-import axios from 'axios';
 import dbConnect from '../../../lib/mongodb';
 import { Order, Listing } from '../../../lib/models';
 
@@ -10,12 +9,19 @@ export default async function handler(req, res) {
   await dbConnect();
 
   try {
-    const { listingId, buyer } = req.body;
+    const { listingId, buyer, paymentMethod } = req.body;
 
     if (!listingId || !buyer?.name || !buyer?.email || !buyer?.whatsapp) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields'
+      });
+    }
+
+    if (!paymentMethod || !['USDT', 'LTC'].includes(paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please select a payment method (USDT or LTC)'
       });
     }
 
@@ -28,6 +34,8 @@ export default async function handler(req, res) {
     }
 
     const orderId = `ORD-${Date.now()}`;
+    
+    // Create order
     const order = await Order.create({
       orderId,
       listingId: listing._id,
@@ -39,80 +47,29 @@ export default async function handler(req, res) {
       },
       buyer,
       amount: listing.price,
-      status: 'pending'
+      status: 'pending_payment',
+      paymentDetails: {
+        method: paymentMethod,
+        amountUSD: listing.price,
+        createdAt: new Date()
+      }
     });
 
-    const coinbaseApiKey = process.env.COINBASE_COMMERCE_API_KEY;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-
-    if (!coinbaseApiKey || coinbaseApiKey.includes('your_api_key')) {
-      return res.status(200).json({
-        success: true,
-        demo: true,
-        orderId: order.orderId,
-        message: 'Demo mode - Coinbase Commerce not configured',
-        paymentUrl: `${appUrl}/order/${orderId}`,
-        order
-      });
-    }
-
-    // Create charge using Coinbase Commerce REST API
-    const chargeData = {
-      name: listing.title,
-      description: `Order #${orderId} - ${listing.description}`,
-      pricing_type: 'fixed_price',
-      local_price: {
-        amount: listing.price.toString(),
-        currency: 'USD'
-      },
-      metadata: {
-        order_id: orderId,
-        customer_name: buyer.name,
-        customer_email: buyer.email,
-        customer_whatsapp: buyer.whatsapp
-      },
-      redirect_url: `${appUrl}/?order=${orderId}&status=success`,
-      cancel_url: `${appUrl}/?order=${orderId}&status=cancel`
-    };
-
-    console.log('📤 Creating Coinbase charge:', chargeData);
-
-    const response = await axios.post(
-      'https://api.commerce.coinbase.com/charges',
-      chargeData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CC-Api-Key': coinbaseApiKey,
-          'X-CC-Version': '2018-03-22'
-        }
-      }
-    );
-
-    const charge = response.data.data;
-    console.log('✅ Charge created:', charge.id);
-
-    // Update order with payment details
-    order.paymentDetails = {
-      chargeId: charge.id,
-      chargeCode: charge.code,
-      hostedUrl: charge.hosted_url
-    };
-    await order.save();
+    console.log('✅ Order created:', orderId, 'Payment method:', paymentMethod);
 
     return res.status(200).json({
       success: true,
       orderId: order.orderId,
-      paymentUrl: charge.hosted_url,
-      chargeId: charge.id,
-      chargeCode: charge.code
+      paymentMethod,
+      amountUSD: listing.price,
+      message: 'Order created. Redirecting to payment instructions...'
     });
 
   } catch (error) {
-    console.error('❌ Payment error:', error.response?.data || error.message);
+    console.error('❌ Order creation error:', error);
     return res.status(500).json({
       success: false,
-      error: error.response?.data?.error?.message || error.message
+      error: error.message
     });
   }
 }

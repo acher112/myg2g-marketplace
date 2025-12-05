@@ -5,17 +5,41 @@ export default async function handler(req, res) {
   await dbConnect();
   const { id } = req.query;
 
-  if (req.method === 'GET') {
-    try {
-      const order = await Order.findOne({ orderId: id });
-      if (!order) {
-        return res.status(404).json({ success: false, error: 'Order not found' });
-      }
-      return res.status(200).json({ success: true, data: order });
-    } catch (error) {
-      return res.status(500).json({ success: false, error: error.message });
+if (req.method === 'GET') {
+  try {
+    const order = await Order.findOne({ orderId: id });
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
     }
+
+    // Check if request has admin password
+    const adminPassword = req.headers['admin-password'];
+    const isAdmin = adminPassword === process.env.ADMIN_PASSWORD;
+
+    // Return full data for admin, limited data for customers
+    if (isAdmin) {
+      return res.status(200).json({ success: true, data: order });
+    } else {
+      // Public view - hide sensitive info
+      return res.status(200).json({
+        success: true,
+        data: {
+          orderId: order.orderId,
+          status: order.status,
+          amount: order.amount,
+          listingSnapshot: order.listingSnapshot,
+          paymentDetails: {
+            method: order.paymentDetails?.method
+          },
+          createdAt: order.createdAt
+        }
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
   }
+}
+
 
   if (req.method === 'PUT') {
     try {
