@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import axios from 'axios';
 import Header from '../components/Header';
 import { Mail, MessageCircle, Send } from 'lucide-react';
 
@@ -13,14 +14,30 @@ export default function ContactPage() {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Support request:', formData);
-    setSubmitted(true);
+    setSubmitting(true);
+    
+    try {
+      const response = await axios.post('/api/contact/submit', formData);
+      
+      if (response.data.success) {
+        console.log('✅ Message sent successfully');
+        setSubmitted(true);
+      } else {
+        alert('Error sending message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Error sending message. Please try WhatsApp or Email directly.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const whatsappNumber = '+923001234567'; // Change to your real WhatsApp number
+  const whatsappNumber = '+923150029531'; // Your real WhatsApp number
   const supportEmail = 'muhammadachar452@gmail.com';
 
   if (submitted) {
@@ -158,9 +175,10 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 rounded-lg font-bold text-lg transition"
+                disabled={submitting}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-lg font-bold text-lg transition"
               >
-                Send Message
+                {submitting ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import { Plus, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Mail } from 'lucide-react';
 import { CATEGORIES } from '../../lib/categories';
 
 export default function AdminDashboard() {
@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('listings');
   const [listings, setListings] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [newListing, setNewListing] = useState({
@@ -61,6 +62,9 @@ export default function AdminDashboard() {
       const ordersRes = await axios.get('/api/orders', {
         headers: { 'admin-password': adminPass }
       });
+      const messagesRes = await axios.get('/api/contact', {
+        headers: { 'admin-password': adminPass }
+      });
 
       const groupedListings = {};
       listingsRes.data.data.forEach(listing => {
@@ -72,6 +76,7 @@ export default function AdminDashboard() {
 
       setListings(groupedListings);
       setOrders(ordersRes.data.data);
+      setMessages(messagesRes.data.data);
     } catch (error) {
       console.error('Error fetching data:', error);
       if (error.response?.status === 401) {
@@ -178,25 +183,17 @@ export default function AdminDashboard() {
     }
   };
 
-  // NEW FUNCTION - Mark as Paid
-  const handleMarkAsPaid = async (orderId) => {
-    if (!confirm('✅ Confirm that you received the crypto payment in your Binance wallet?\n\nThis will mark the order as PAID and you should deliver the account to the customer immediately.')) {
-      return;
-    }
-
+  const handleUpdateMessageStatus = async (messageId, newStatus) => {
     try {
       const adminPass = localStorage.getItem('adminPassword');
-      await axios.put(`/api/orders/${orderId}/status`, {
-        status: 'paid'
+      await axios.put(`/api/contact/${messageId}/status`, {
+        status: newStatus
       }, {
         headers: { 'admin-password': adminPass }
       });
-      
-      alert('✅ Order marked as PAID!\n\n📧 Now deliver the account details to the customer via:\n• Email (check order details)\n• WhatsApp (check order details)\n\nAfter delivery, mark order as "Delivered".');
-      fetchData(); // Refresh orders
+      fetchData();
     } catch (error) {
-      console.error('Error updating order:', error);
-      alert('Error updating order status');
+      console.error('Error updating message status:', error);
     }
   };
 
@@ -240,6 +237,8 @@ export default function AdminDashboard() {
     );
   }
 
+  const newMessagesCount = messages.filter(m => m.status === 'new').length;
+
   return (
     <>
       <Head>
@@ -274,6 +273,19 @@ export default function AdminDashboard() {
               }`}
             >
               Orders ({orders.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('messages')}
+              className={`px-6 py-3 rounded-lg font-semibold transition relative ${
+                activeTab === 'messages' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-gray-400 hover:text-white'
+              }`}
+            >
+              Messages ({messages.length})
+              {newMessagesCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                  {newMessagesCount}
+                </span>
+              )}
             </button>
           </div>
 
@@ -419,14 +431,16 @@ export default function AdminDashboard() {
                           value={order.status}
                           onChange={(e) => handleUpdateOrderStatus(order.orderId, e.target.value)}
                           className={`px-3 py-1 rounded-lg font-semibold text-sm ${
-                            order.status === 'pending' || order.status === 'pending_payment' ? 'bg-yellow-600' :
-                            order.status === 'awaiting_verification' ? 'bg-orange-600' :
-                            order.status === 'paid' ? 'bg-blue-600' :
-                            order.status === 'delivered' ? 'bg-green-600' :
-                            order.status === 'completed' ? 'bg-purple-600' :
+                            order.status === 'pending' ? 'bg-yellow-600' :
+                            order.status === 'pending_payment' ? 'bg-orange-600' :
+                            order.status === 'awaiting_verification' ? 'bg-blue-600' :
+                            order.status === 'paid' ? 'bg-green-600' :
+                            order.status === 'delivered' ? 'bg-purple-600' :
+                            order.status === 'completed' ? 'bg-teal-600' :
                             'bg-red-600'
                           } text-white`}
                         >
+                          <option value="pending">Pending</option>
                           <option value="pending_payment">Pending Payment</option>
                           <option value="awaiting_verification">Awaiting Verification</option>
                           <option value="paid">Paid</option>
@@ -450,42 +464,92 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      {/* Payment Details */}
-                      {order.paymentDetails && (
+                      {order.paymentDetails?.method && (
                         <div className="mt-4 p-3 bg-slate-800 rounded-lg text-xs text-gray-400">
-                          {order.paymentDetails.method && (
-                            <p><strong>Payment Method:</strong> {order.paymentDetails.method}</p>
-                          )}
+                          <p><strong>Payment Method:</strong> {order.paymentDetails.method}</p>
                           {order.paymentDetails.transactionId && (
                             <p><strong>Transaction ID:</strong> {order.paymentDetails.transactionId}</p>
                           )}
-                          {order.paymentDetails.submittedAt && (
-                            <p><strong>Submitted:</strong> {new Date(order.paymentDetails.submittedAt).toLocaleString()}</p>
-                          )}
                         </div>
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-                      {/* Mark as Paid Button - Shows only for awaiting_verification */}
-                      {order.status === 'awaiting_verification' && (
-                        <div className="mt-4 p-4 bg-orange-900/30 border border-orange-500/30 rounded-lg">
-                          <p className="text-orange-300 text-sm mb-3">
-                            ⚠️ Customer claims payment sent. Check your Binance wallet for incoming {order.paymentDetails?.method} payment of ${order.amount}.
-                          </p>
+          {activeTab === 'messages' && (
+            <div className="bg-slate-800 rounded-2xl p-6 border border-purple-500/30">
+              <h2 className="text-2xl font-bold text-white mb-6">Contact Messages</h2>
+              
+              {loading ? (
+                <p className="text-gray-400 text-center py-8">Loading...</p>
+              ) : messages.length === 0 ? (
+                <p className="text-gray-400 text-center py-8">No messages yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {messages.slice().reverse().map(message => (
+                    <div key={message._id} className={`bg-slate-900 rounded-xl p-6 border ${
+                      message.status === 'new' ? 'border-yellow-500/50' : 'border-slate-700'
+                    }`}>
+                      <div className="flex justify-between items-start mb-4 flex-wrap gap-4">
+                        <div className="flex items-start gap-3">
+                          <Mail className="text-purple-400 mt-1" size={24} />
+                          <div>
+                            <h3 className="text-lg font-bold text-white">{message.name}</h3>
+                            <p className="text-gray-400 text-sm">{message.email}</p>
+                            <p className="text-gray-500 text-xs mt-1">{new Date(message.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <select
+                          value={message.status}
+                          onChange={(e) => handleUpdateMessageStatus(message._id, e.target.value)}
+                          className={`px-3 py-1 rounded-lg font-semibold text-sm ${
+                            message.status === 'new' ? 'bg-yellow-600' :
+                            message.status === 'read' ? 'bg-blue-600' :
+                            message.status === 'replied' ? 'bg-purple-600' :
+                            'bg-green-600'
+                          } text-white`}
+                        >
+                          <option value="new">New</option>
+                          <option value="read">Read</option>
+                          <option value="replied">Replied</option>
+                          <option value="resolved">Resolved</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2 text-gray-300 text-sm mb-4">
+                        {message.orderId && (
+                          <p><strong className="text-white">Order ID:</strong> {message.orderId}</p>
+                        )}
+                        <p><strong className="text-white">Issue:</strong> {message.issue.replace(/_/g, ' ').toUpperCase()}</p>
+                      </div>
+
+                      <div className="bg-slate-800 rounded-lg p-4">
+                        <p className="text-white font-semibold mb-2">Message:</p>
+                        <p className="text-gray-300 text-sm whitespace-pre-wrap">{message.message}</p>
+                      </div>
+
+                      <div className="mt-4 flex gap-2">
+                        <a
+                          href={`mailto:${message.email}`}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition"
+                        >
+                          Reply via Email
+                        </a>
+                        {message.orderId && (
                           <button
-                            onClick={() => handleMarkAsPaid(order.orderId)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition font-semibold w-full"
+                            onClick={() => {
+                              setActiveTab('orders');
+                              // Optionally scroll to the order
+                            }}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm transition"
                           >
-                            ✓ Verified Payment - Mark as Paid & Deliver
+                            View Order
                           </button>
-                        </div>
-                      )}
-
-                      {/* Paid status info */}
-                      {order.status === 'paid' && (
-                        <div className="mt-4 p-3 bg-green-900/30 border border-green-500/30 rounded-lg text-green-300 text-sm">
-                          ✓ Payment verified. Deliver account details to customer via email/WhatsApp, then mark as "Delivered".
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
