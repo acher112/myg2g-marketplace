@@ -3,8 +3,9 @@ import { Listing } from '../../../lib/models';
 
 export default async function handler(req, res) {
   await dbConnect();
-  const { id } = req.query;
+  const { id } = req.query;  // Get the ID from URL
 
+  // GET single listing (public)
   if (req.method === 'GET') {
     try {
       const listing = await Listing.findById(id);
@@ -17,6 +18,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // PUT - Update listing (admin only)
   if (req.method === 'PUT') {
     try {
       const adminPassword = req.headers['admin-password'];
@@ -24,11 +26,10 @@ export default async function handler(req, res) {
         return res.status(401).json({ success: false, error: 'Unauthorized' });
       }
 
-      const listing = await Listing.findByIdAndUpdate(
-        id,
-        { ...req.body, updatedAt: Date.now() },
-        { new: true, runValidators: true }
-      );
+      const listing = await Listing.findByIdAndUpdate(id, req.body, {
+        new: true,
+        runValidators: true
+      });
 
       if (!listing) {
         return res.status(404).json({ success: false, error: 'Listing not found' });
@@ -40,6 +41,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // DELETE listing (admin only)
   if (req.method === 'DELETE') {
     try {
       const adminPassword = req.headers['admin-password'];
@@ -54,7 +56,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ success: true, data: {} });
     } catch (error) {
-      return res.status(500).json({ success: false, error: error.message });
+      return res.status(400).json({ success: false, error: error.message });
     }
   }
 

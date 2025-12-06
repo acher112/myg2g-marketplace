@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import { Plus, Trash2, Eye, EyeOff, Mail } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Mail, Edit2, X } from 'lucide-react';
 import { CATEGORIES } from '../../lib/categories';
 
 export default function AdminDashboard() {
@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editingListing, setEditingListing] = useState(null);
 
   const [newListing, setNewListing] = useState({
     title: '',
@@ -140,6 +141,43 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleEditListing = (listing) => {
+    setEditingListing({
+      ...listing,
+      features: listing.features.join('\n')
+    });
+  };
+
+  const handleUpdateListing = async () => {
+    if (!editingListing.title || !editingListing.price || !editingListing.category) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    try {
+      const adminPass = localStorage.getItem('adminPassword');
+      const featuresArray = editingListing.features.split('\n').filter(f => f.trim());
+
+      await axios.put(`/api/listings/${editingListing._id}`, {
+        title: editingListing.title,
+        description: editingListing.description,
+        category: editingListing.category,
+        price: parseFloat(editingListing.price),
+        features: featuresArray,
+        inStock: editingListing.inStock
+      }, {
+        headers: { 'admin-password': adminPass }
+      });
+
+      alert('✅ Listing updated successfully!');
+      setEditingListing(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error updating listing:', error);
+      alert('Error updating listing');
+    }
+  };
+
   const handleDeleteListing = async (id) => {
     if (!confirm('⚠️ Are you sure you want to delete this listing?\n\nThis action cannot be undone.')) return;
 
@@ -148,6 +186,7 @@ export default function AdminDashboard() {
       await axios.delete(`/api/listings/${id}`, {
         headers: { 'admin-password': adminPass }
       });
+      alert('✅ Listing deleted successfully!');
       fetchData();
     } catch (error) {
       console.error('Error deleting listing:', error);
@@ -183,6 +222,22 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    if (!confirm('⚠️ Are you sure you want to delete this order?\n\nThis action cannot be undone.')) return;
+
+    try {
+      const adminPass = localStorage.getItem('adminPassword');
+      await axios.delete(`/api/orders/${orderId}/delete`, {
+        headers: { 'admin-password': adminPass }
+      });
+      alert('✅ Order deleted successfully!');
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      alert('Error deleting order');
+    }
+  };
+
   const handleUpdateMessageStatus = async (messageId, newStatus) => {
     try {
       const adminPass = localStorage.getItem('adminPassword');
@@ -194,6 +249,22 @@ export default function AdminDashboard() {
       fetchData();
     } catch (error) {
       console.error('Error updating message status:', error);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!confirm('⚠️ Are you sure you want to delete this message?\n\nThis action cannot be undone.')) return;
+
+    try {
+      const adminPass = localStorage.getItem('adminPassword');
+      await axios.delete(`/api/contact/${messageId}/delete`, {
+        headers: { 'admin-password': adminPass }
+      });
+      alert('✅ Message deleted successfully!');
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('Error deleting message');
     }
   };
 
@@ -291,6 +362,91 @@ export default function AdminDashboard() {
 
           {activeTab === 'listings' && (
             <>
+              {/* Edit Modal */}
+              {editingListing && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                  <div className="bg-slate-800 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/30">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-2xl font-bold text-white">Edit Listing</h2>
+                      <button
+                        onClick={() => setEditingListing(null)}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <X size={24} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <select
+                        value={editingListing.category}
+                        onChange={(e) => setEditingListing({...editingListing, category: e.target.value})}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                      >
+                        {CATEGORIES.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                      </select>
+
+                      <input
+                        type="text"
+                        placeholder="Title"
+                        value={editingListing.title}
+                        onChange={(e) => setEditingListing({...editingListing, title: e.target.value})}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                      />
+
+                      <textarea
+                        placeholder="Description"
+                        value={editingListing.description}
+                        onChange={(e) => setEditingListing({...editingListing, description: e.target.value})}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white h-24 focus:border-purple-500 focus:outline-none"
+                      />
+
+                      <textarea
+                        placeholder="Features (one per line)"
+                        value={editingListing.features}
+                        onChange={(e) => setEditingListing({...editingListing, features: e.target.value})}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white h-32 focus:border-purple-500 focus:outline-none"
+                      />
+
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Price (USD)"
+                        value={editingListing.price}
+                        onChange={(e) => setEditingListing({...editingListing, price: e.target.value})}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                      />
+
+                      <label className="flex items-center gap-3 text-white">
+                        <input
+                          type="checkbox"
+                          checked={editingListing.inStock}
+                          onChange={(e) => setEditingListing({...editingListing, inStock: e.target.checked})}
+                          className="w-5 h-5"
+                        />
+                        In Stock
+                      </label>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleUpdateListing}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition"
+                        >
+                          Save Changes
+                        </button>
+                        <button
+                          onClick={() => setEditingListing(null)}
+                          className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-semibold transition"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-slate-800 rounded-2xl p-6 mb-8 border border-purple-500/30">
                 <h2 className="text-2xl font-bold text-white mb-4">Add New Listing</h2>
                 <form onSubmit={handleAddListing} className="space-y-4">
@@ -381,24 +537,32 @@ export default function AdminDashboard() {
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex gap-2 flex-shrink-0">
-                                <button
-                                  onClick={() => handleToggleStock(listing._id, listing.inStock)}
-                                  className={`p-2 rounded-lg transition ${
-                                    listing.inStock ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
-                                  }`}
-                                  title={listing.inStock ? 'Mark as Out of Stock' : 'Mark as In Stock'}
-                                >
-                                  {listing.inStock ? <EyeOff size={18} className="text-white" /> : <Eye size={18} className="text-white" />}
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteListing(listing._id)}
-                                  className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition"
-                                  title="Delete"
-                                >
-                                  <Trash2 size={18} className="text-white" />
-                                </button>
-                              </div>
+                            <div className="flex gap-2 flex-shrink-0">
+  <button
+    onClick={() => handleEditListing(listing)}
+    className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition"
+    title="Edit"
+  >
+    <Edit2 size={18} className="text-white" />
+  </button>
+  <button
+    onClick={() => handleToggleStock(listing._id, listing.inStock)}
+    className={`p-2 rounded-lg transition ${
+      listing.inStock ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
+    }`}
+    title={listing.inStock ? 'Mark as Out of Stock' : 'Mark as In Stock'}
+  >
+    {listing.inStock ? <EyeOff size={18} className="text-white" /> : <Eye size={18} className="text-white" />}
+  </button>
+  <button
+    onClick={() => handleDeleteListing(listing._id)}
+    className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition"
+    title="Delete"
+  >
+    <Trash2 size={18} className="text-white" />
+  </button>
+</div>
+
                             </div>
                           ))}
                         </div>
@@ -427,28 +591,37 @@ export default function AdminDashboard() {
                           <h3 className="text-lg font-bold text-white">Order #{order.orderId}</h3>
                           <p className="text-gray-400 text-sm">{new Date(order.createdAt).toLocaleString()}</p>
                         </div>
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleUpdateOrderStatus(order.orderId, e.target.value)}
-                          className={`px-3 py-1 rounded-lg font-semibold text-sm ${
-                            order.status === 'pending' ? 'bg-yellow-600' :
-                            order.status === 'pending_payment' ? 'bg-orange-600' :
-                            order.status === 'awaiting_verification' ? 'bg-blue-600' :
-                            order.status === 'paid' ? 'bg-green-600' :
-                            order.status === 'delivered' ? 'bg-purple-600' :
-                            order.status === 'completed' ? 'bg-teal-600' :
-                            'bg-red-600'
-                          } text-white`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="pending_payment">Pending Payment</option>
-                          <option value="awaiting_verification">Awaiting Verification</option>
-                          <option value="paid">Paid</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
-                          <option value="disputed">Disputed</option>
-                        </select>
+                        <div className="flex gap-2">
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleUpdateOrderStatus(order.orderId, e.target.value)}
+                            className={`px-3 py-1 rounded-lg font-semibold text-sm ${
+                              order.status === 'pending' ? 'bg-yellow-600' :
+                              order.status === 'pending_payment' ? 'bg-orange-600' :
+                              order.status === 'awaiting_verification' ? 'bg-blue-600' :
+                              order.status === 'paid' ? 'bg-green-600' :
+                              order.status === 'delivered' ? 'bg-purple-600' :
+                              order.status === 'completed' ? 'bg-teal-600' :
+                              'bg-red-600'
+                            } text-white`}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="pending_payment">Pending Payment</option>
+                            <option value="awaiting_verification">Awaiting Verification</option>
+                            <option value="paid">Paid</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="disputed">Disputed</option>
+                          </select>
+                          <button
+                            onClick={() => handleDeleteOrder(order.orderId)}
+                            className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition"
+                            title="Delete Order"
+                          >
+                            <Trash2 size={18} className="text-white" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-4 text-gray-300 text-sm">
@@ -502,21 +675,30 @@ export default function AdminDashboard() {
                             <p className="text-gray-500 text-xs mt-1">{new Date(message.createdAt).toLocaleString()}</p>
                           </div>
                         </div>
-                        <select
-                          value={message.status}
-                          onChange={(e) => handleUpdateMessageStatus(message._id, e.target.value)}
-                          className={`px-3 py-1 rounded-lg font-semibold text-sm ${
-                            message.status === 'new' ? 'bg-yellow-600' :
-                            message.status === 'read' ? 'bg-blue-600' :
-                            message.status === 'replied' ? 'bg-purple-600' :
-                            'bg-green-600'
-                          } text-white`}
-                        >
-                          <option value="new">New</option>
-                          <option value="read">Read</option>
-                          <option value="replied">Replied</option>
-                          <option value="resolved">Resolved</option>
-                        </select>
+                        <div className="flex gap-2">
+                          <select
+                            value={message.status}
+                            onChange={(e) => handleUpdateMessageStatus(message._id, e.target.value)}
+                            className={`px-3 py-1 rounded-lg font-semibold text-sm ${
+                              message.status === 'new' ? 'bg-yellow-600' :
+                              message.status === 'read' ? 'bg-blue-600' :
+                              message.status === 'replied' ? 'bg-purple-600' :
+                              'bg-green-600'
+                            } text-white`}
+                          >
+                            <option value="new">New</option>
+                            <option value="read">Read</option>
+                            <option value="replied">Replied</option>
+                            <option value="resolved">Resolved</option>
+                          </select>
+                          <button
+                            onClick={() => handleDeleteMessage(message._id)}
+                            className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition"
+                            title="Delete Message"
+                          >
+                            <Trash2 size={18} className="text-white" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="space-y-2 text-gray-300 text-sm mb-4">
@@ -540,10 +722,7 @@ export default function AdminDashboard() {
                         </a>
                         {message.orderId && (
                           <button
-                            onClick={() => {
-                              setActiveTab('orders');
-                              // Optionally scroll to the order
-                            }}
+                            onClick={() => setActiveTab('orders')}
                             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm transition"
                           >
                             View Order

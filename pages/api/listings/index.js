@@ -8,7 +8,8 @@ export default async function handler(req, res) {
     try {
       const { category } = req.query;
       
-      const query = category ? { category, inStock: true } : { inStock: true };
+      // Remove inStock filter - show ALL products
+      const query = category ? { category } : {};
       const listings = await Listing.find(query).sort({ createdAt: -1 });
       
       return res.status(200).json({ success: true, data: listings });
