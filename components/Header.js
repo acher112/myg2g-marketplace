@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Shield, Menu, X, User } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -13,13 +13,13 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-2">
             {/* Logo image */}
             <Image
-              src="/logo.png"      // file in /public
+              src="/logo.png"
               alt="MyG2G logo"
               width={65}
               height={65}
               className="rounded-md"
             />
-            {/* Text + icon */}
+            {/* Text */}
             <div className="flex items-center gap-1">
               <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 MyG2G
@@ -31,12 +31,8 @@ export default function Header() {
             <Link href="/" className="hover:text-purple-400 transition">
               Home
             </Link>
-            <Link
-              href="/admin"
-              className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition flex items-center gap-2"
-            >
-              <User size={18} />
-              Admin
+            <Link href="/contact" className="hover:text-purple-400 transition">
+              Contact
             </Link>
           </nav>
 
@@ -58,11 +54,11 @@ export default function Header() {
               Home
             </Link>
             <Link
-              href="/admin"
+              href="/contact"
               onClick={() => setMobileMenuOpen(false)}
-              className="text-left bg-purple-600 px-4 py-2 rounded"
+              className="text-left hover:text-purple-400"
             >
-              Admin
+              Contact
             </Link>
           </nav>
         )}

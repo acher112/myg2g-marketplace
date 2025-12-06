@@ -9,7 +9,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Image
-                src="/logo.png"        // put logo.png in /public
+                src="/logo.png"
                 alt="MyG2G logo"
                 width={28}
                 height={28}
@@ -28,9 +28,9 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
               <li><Link href="/" className="hover:text-purple-400 transition">Home</Link></li>
+              <li><Link href="/contact" className="hover:text-purple-400 transition">Contact Support</Link></li>
               <li><Link href="/terms" className="hover:text-purple-400 transition">Terms of Service</Link></li>
               <li><Link href="/privacy" className="hover:text-purple-400 transition">Privacy Policy</Link></li>
-              <li><Link href="/admin" className="hover:text-purple-400 transition">Admin Login</Link></li>
             </ul>
           </div>
 
@@ -38,10 +38,9 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Payment Methods</h3>
             <p className="text-gray-400 text-sm mb-2">We accept cryptocurrency:</p>
             <div className="flex flex-wrap gap-2">
-              <span className="bg-slate-800 px-3 py-1 rounded text-xs text-gray-300">Bitcoin</span>
-              <span className="bg-slate-800 px-3 py-1 rounded text-xs text-gray-300">USDT</span>
-              <span className="bg-slate-800 px-3 py-1 rounded text-xs text-gray-300">Ethereum</span>
-              <span className="bg-slate-800 px-3 py-1 rounded text-xs text-gray-300">+100 more</span>
+              <span className="bg-slate-800 px-3 py-1 rounded text-xs text-gray-300">USDT (TRC20)</span>
+              <span className="bg-slate-800 px-3 py-1 rounded text-xs text-gray-300">Litecoin</span>
+              <span className="bg-slate-800 px-3 py-1 rounded text-xs text-gray-300">More soon</span>
             </div>
           </div>
         </div>
