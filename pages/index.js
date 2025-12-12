@@ -53,6 +53,26 @@ export default function Home() {
         <meta name="author" content="MyG2G" />
         <meta name="theme-color" content="#7c3aed" />
 
+        {/* Structured Data - Organization & Logo */}
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "MyG2G",
+      "url": "https://myg2g.me",
+      "logo": "https://myg2g.me/logo.png",
+      "description": "Buy verified game accounts with cryptocurrency. Discord, Steam, Valorant, Fortnite and more.",
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "Customer Service"
+      }
+    })
+  }}
+/>
+
         {/* Structured Data - JSON-LD for better SEO */}
         <script
           type="application/ld+json"
