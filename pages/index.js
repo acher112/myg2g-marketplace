@@ -9,10 +9,54 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>MyG2G - Buy Premium Game Accounts with Crypto</title>
-        <meta name="description" content="Buy verified game accounts with cryptocurrency. Discord, Steam, Fortnite, Valorant and more." />
+        {/* Primary Meta Tags */}
+        <title>MyG2G - Buy Premium Game Accounts with Crypto | Discord, Steam, Valorant</title>
+        <meta name="title" content="MyG2G - Buy Premium Game Accounts with Crypto | Discord, Steam, Valorant" />
+        <meta name="description" content="Buy verified game accounts instantly with cryptocurrency. Secure Discord, Steam, Fortnite, Valorant, League of Legends accounts. Fast delivery, 100% safe, crypto payments accepted." />
+        <meta name="keywords" content="buy game accounts, gaming accounts, discord accounts, steam accounts, valorant accounts, fortnite accounts, crypto gaming marketplace, buy accounts with bitcoin, myg2g, g2g marketplace" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        <link rel="canonical" href="https://myg2g.me/" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://myg2g.me/" />
+        <meta property="og:title" content="MyG2G - Buy Premium Game Accounts with Crypto" />
+        <meta property="og:description" content="Buy verified game accounts instantly with cryptocurrency. Discord, Steam, Valorant, Fortnite and more. Fast delivery & secure payments." />
+        <meta property="og:image" content="https://myg2g.me/og-image.jpg" />
+        <meta property="og:site_name" content="MyG2G" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://myg2g.me/" />
+        <meta property="twitter:title" content="MyG2G - Buy Premium Game Accounts with Crypto" />
+        <meta property="twitter:description" content="Buy verified game accounts instantly with cryptocurrency. Discord, Steam, Valorant, Fortnite and more." />
+        <meta property="twitter:image" content="https://myg2g.me/og-image.jpg" />
+
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow" />
+        <meta name="language" content="English" />
+        <meta name="author" content="MyG2G" />
+        <meta name="theme-color" content="#7c3aed" />
+
+        {/* Structured Data - JSON-LD for better SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "MyG2G",
+              "url": "https://myg2g.me",
+              "description": "Buy verified game accounts with cryptocurrency",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://myg2g.me/search?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -44,6 +88,7 @@ export default function Home() {
 
         {/* Categories Grid */}
         <section className="container mx-auto px-4 py-16">
+          <h2 className="text-3xl font-bold text-white text-center mb-8">Browse Game Accounts</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {CATEGORIES.map(category => (
               <Link
@@ -55,7 +100,7 @@ export default function Home() {
                 <div className="relative w-full h-40 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center p-4">
                   <img 
                     src={category.image} 
-                    alt={category.name}
+                    alt={`Buy ${category.name} accounts with crypto`}
                     className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform"
                   />
                 </div>
@@ -73,7 +118,7 @@ export default function Home() {
         {/* Trust Section */}
         <section className="container mx-auto px-4 py-16">
           <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 backdrop-blur-sm rounded-3xl p-12 border border-purple-500/30">
-            <h2 className="text-3xl font-bold text-white text-center mb-12">Why Choose Us?</h2>
+            <h2 className="text-3xl font-bold text-white text-center mb-12">Why Choose MyG2G?</h2>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center text-white">
                 <Lock className="mx-auto mb-4 text-purple-400" size={48} />
