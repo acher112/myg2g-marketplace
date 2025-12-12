@@ -17,6 +17,20 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="canonical" href="https://myg2g.me/" />
+
+          {/* Primary Meta Tags */}
+  <title>MyG2G - Buy Premium Game Accounts with Crypto | Discord, Steam, Valorant</title>
+  <meta name="title" content="MyG2G - Buy Premium Game Accounts with Crypto | Discord, Steam, Valorant" />
+  <meta name="description" content="Buy verified game accounts instantly with cryptocurrency. Secure Discord, Steam, Fortnite, Valorant, League of Legends accounts. Fast delivery, 100% safe, crypto payments accepted." />
+  <meta name="keywords" content="buy game accounts, gaming accounts, discord accounts, steam accounts, valorant accounts, fortnite accounts, crypto gaming marketplace, buy accounts with bitcoin, myg2g, g2g marketplace" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  {/* ADD THIS LINE - Language Meta Tag */}
+  <meta name="language" content="English" />
+  <meta httpEquiv="Content-Language" content="en" />
+  
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="canonical" href="https://myg2g.me/" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
